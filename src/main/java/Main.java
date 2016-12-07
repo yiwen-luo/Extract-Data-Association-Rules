@@ -1,7 +1,9 @@
+import javafx.util.Pair;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -13,8 +15,8 @@ import java.util.TreeSet;
 
 public class Main {
 
-    private static double supp;
-    private static double conf;
+    private static double minSupp;
+    private static double minConf;
     private static int dataCount = 0;
     private static Map<Integer, String> attributeMap = new TreeMap<>();
     private static Map<Integer, Set<Integer>> recordMap = new TreeMap<>();
@@ -43,7 +45,7 @@ public class Main {
 
     private static List<Map<BitSet, Candidate>> apriori(Map<Integer, Set<Integer>> recordMap) {
         List<Map<BitSet, Candidate>> result = new ArrayList<>();
-        Map<BitSet, Candidate> prev = new TreeMap<>(new BitSetComp());
+        Map<BitSet, Candidate> prev = new TreeMap<>(new BitSetCompare());
 
         // Reformatting recordMap using BitSet
         for (Map.Entry<Integer, Set<Integer>> currentEntry : recordMap.entrySet()) {
@@ -62,7 +64,7 @@ public class Main {
             Iterator<Map.Entry<BitSet, Candidate>> prevIter = prev.entrySet().iterator();
             while (prevIter.hasNext()) {
                 Map.Entry<BitSet, Candidate> currentEntry = prevIter.next();
-                if (currentEntry.getValue().records.size() < supp * dataCount ||
+                if (currentEntry.getValue().records.size() < minSupp * dataCount ||
                         currentEntry.getValue().supportList.size() < candidateCount) {
                     prevIter.remove();
                 }
@@ -75,22 +77,22 @@ public class Main {
                 prevBits.or(currentEntry.getKey());
             }
 
-            Map<BitSet, Candidate> curr = new TreeMap<>(new BitSetComp());
-            for (Map.Entry<BitSet, Candidate> currentEntry : prev.entrySet()) {
+            Map<BitSet, Candidate> curr = new TreeMap<>(new BitSetCompare());
+            for (Map.Entry<BitSet, Candidate> prevEntry : prev.entrySet()) {
                 // Augment includes every bits in prevBits except for the current bit
-                BitSet augment = (BitSet) currentEntry.getKey().clone();
+                BitSet augment = (BitSet) prevEntry.getKey().clone();
                 augment.xor(prevBits);
 
                 // For every "true" bit, update the corresponding Candidate
                 for (int j = augment.nextSetBit(0); j >= 0; j = augment.nextSetBit(j + 1)) {
-                    BitSet next = (BitSet) currentEntry.getKey().clone();
+                    BitSet next = (BitSet) prevEntry.getKey().clone();
                     next.set(j);
                     Candidate candidate = curr.get(next);
                     if (candidate == null) {
-                        candidate = new Candidate(currentEntry.getValue().records);
+                        candidate = new Candidate(prevEntry.getValue().records);
                     } else {
-                        candidate.records.retainAll(currentEntry.getValue().records);
-                        candidate.supportList.add(currentEntry.getValue().records.size());
+                        candidate.records.retainAll(prevEntry.getValue().records);
+                        candidate.supportList.add(prevEntry.getValue().records.size());
                     }
                     curr.put(next, candidate);
                 }
@@ -103,7 +105,7 @@ public class Main {
     private static void printCandidate(BitSet bs, StringBuilder output) {
         output.append("[");
         int i = bs.nextSetBit(0);
-        for (; ; ) {
+        while (true) {
             output.append(attributeMap.get(i));
             i = bs.nextSetBit(i + 1);
             if (i < 0) {
@@ -114,13 +116,9 @@ public class Main {
         output.append("]");
     }
 
-    private static void printCandidate(int b, PrintStream ps) {
-        ps.printf("[%s]", attributeMap.get(b));
-    }
-
     private static void pirntFrequentItemsets(List<Map<BitSet, Candidate>> highFreqItems, StringBuilder output) {
         output.append("==Frequent itemsets (min_sup=");
-        output.append((int) (supp * 100));
+        output.append((int) (minSupp * 100));
         output.append("%)\n");
 
         Map<Candidate, BitSet> printMap = new TreeMap<>(new CandidateCompare());
@@ -133,12 +131,46 @@ public class Main {
         for (Map.Entry<Candidate, BitSet> currentEntry : printMap.entrySet()) {
             printCandidate(currentEntry.getValue(), output);
             output.append(", ");
-            output.append((int) (currentEntry.getKey().records.size() * 100.0 / dataCount));
+            output.append((int) (currentEntry.getKey().records.size() * 100.0 / dataCount)); // Calculating the support
             output.append("%\n");
         }
         output.append("\n");
+    }
 
-        System.out.print(output.toString());
+    private static void printAssocRules(List<Map<BitSet, Candidate>> highFreqItems, StringBuilder output) {
+        output.append("==High-confidence association rules (min_conf=");
+        output.append((int) (minConf * 100));
+        output.append("%)\n");
+
+        Map<Pair<Pair<BitSet, String>, Double>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
+        for (Map<BitSet, Candidate> currentCountMap : highFreqItems) {
+            for (Map.Entry<BitSet, Candidate> currentEntry : currentCountMap.entrySet()) {
+                if (currentEntry.getValue().supportList.size() > 1) {
+                    int i = -1;
+                    for (int currentSupport : currentEntry.getValue().supportList) {
+                        i = currentEntry.getKey().nextSetBit(i + 1);
+                        BitSet prevBits = (BitSet) currentEntry.getKey().clone();
+                        prevBits.clear(i);
+                        double currentConfidence = (double) currentEntry.getValue().records.size() / currentSupport;
+                        if (currentConfidence >= minConf) {
+                            printMap.put(new Pair<>(new Pair<>(prevBits, attributeMap.get(i)), currentConfidence),
+                                    (double) currentEntry.getValue().records.size() / dataCount);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<Pair<Pair<BitSet, String>, Double>, Double> currentEntry : printMap.entrySet()) {
+            printCandidate(currentEntry.getKey().getKey().getKey(), output);
+            output.append(" => [");
+            output.append(currentEntry.getKey().getKey().getValue());
+            output.append("](Conf: ");
+            output.append((int) (currentEntry.getKey().getValue() * 100));
+            output.append("%, Supp: ");
+            output.append((int) (currentEntry.getValue() * 100));
+            output.append("%)\n");
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -149,11 +181,16 @@ public class Main {
         }
 
         // Parse parameters
-        supp = Double.valueOf(args[1]);
-        conf = Double.valueOf(args[2]);
+        minSupp = Double.valueOf(args[1]);
+        minConf = Double.valueOf(args[2]);
 
         // Get the attributes of the data file
-        BufferedReader br = new BufferedReader(new FileReader(new File("./data/" + args[0])));
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(new File("./data/" + args[0])));
+        } catch (Exception e) {
+            br = new BufferedReader(new FileReader(new File(args[0])));
+        }
         String[] attributes = br.readLine().split(",");
         addAttributes(attributes);
 
@@ -164,39 +201,18 @@ public class Main {
             dataCount++;
         }
 
+        // Obtain high frequent items by Apriori Algorithm
         List<Map<BitSet, Candidate>> highFreqItems = apriori(recordMap);
 
+        // Print results to the StringBuilder
         StringBuilder output = new StringBuilder();
         pirntFrequentItemsets(highFreqItems, output);
+        printAssocRules(highFreqItems, output);
 
-
-//        System.out.printf("==High-confidence association rules (min_conf=%d%%)\n", (int) (conf * 100));
-//        int level = 0;
-//        for (Map<BitSet, Candidate> e : highFreqItems) {
-//            for (Map.Entry<BitSet, Candidate> f : e.entrySet()) {
-//                assert (f.getValue().supportList.size() == f.getKey().cardinality());
-//                assert (f.getValue().supportList.size() == level + 1);
-//                if (f.getValue().supportList.size() > 1) {
-//                    int i = -1;
-//                    Iterator<Integer> j;
-//                    for (j = f.getValue().supportList.iterator(); j.hasNext(); ) {
-//                        i = f.getKey().nextSetBit(i + 1);
-//                        int prevsupp = j.next();
-//                        BitSet prevbits = (BitSet) f.getKey().clone();
-//                        prevbits.clear(i);
-//                        assert (highFreqItems.get(level - 1).get(prevbits).records.size() == prevsupp);
-//                        if ((double) f.getValue().records.size() / prevsupp >= conf) {
-//                            printCandidate(prevbits, output);
-//                            System.out.print(" => ");
-//                            printCandidate(i, System.out);
-//                            System.out.printf("(Conf: %d%%, Supp: %d%%)\n",
-//                                    (int) ((double) f.getValue().records.size() / prevsupp * 100),
-//                                    (int) ((double) f.getValue().records.size() / dataCount * 100));
-//                        }
-//                    }
-//                }
-//            }
-//            ++level;
-//        }
+        // Outputs
+        System.out.print(output.toString());
+        try (PrintWriter out = new PrintWriter("output.txt")) {
+            out.println(output.toString());
+        }
     }
 }

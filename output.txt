@@ -1,0 +1,62 @@
+==Frequent itemsets (min_sup=15%)
+[Nonprofit], 95%
+[Manhattan], 61%
+[Manhattan,Nonprofit], 56%
+[Education], 34%
+[Queens], 34%
+[Education,Nonprofit], 33%
+[Brooklyn], 30%
+[Queens,Nonprofit], 29%
+[Brooklyn,Nonprofit], 26%
+[Health], 25%
+[Health,Nonprofit], 24%
+[Bronx], 22%
+[Counseling & Support Groups], 21%
+[Counseling & Support Groups,Nonprofit], 21%
+[Manhattan,Education], 20%
+[Youth Services], 20%
+[Youth Services,Nonprofit], 19%
+[Manhattan,Education,Nonprofit], 19%
+[Bronx,Nonprofit], 18%
+[Manhattan,Health], 17%
+[Manhattan,Health,Nonprofit], 16%
+[Brooklyn,Manhattan], 16%
+[Manhattan,Queens], 16%
+[Bronx,Manhattan], 16%
+[Brooklyn,Queens], 16%
+[Staten Island], 15%
+[Bronx,Queens], 15%
+[Brooklyn,Manhattan,Queens], 15%
+[Bronx,Manhattan,Queens], 15%
+[Brooklyn,Bronx,Queens], 15%
+[Arts & Culture], 15%
+[Brooklyn,Bronx,Manhattan,Queens], 15%
+
+==High-confidence association rules (min_conf=70%)
+[Bronx,Manhattan,Queens] => [Brooklyn](Conf: 98%, Supp: 15%)
+[Nonprofit] => [Counseling & Support Groups](Conf: 98%, Supp: 21%)
+[Bronx,Queens] => [Manhattan](Conf: 98%, Supp: 15%)
+[Bronx,Manhattan] => [Brooklyn](Conf: 98%, Supp: 15%)
+[Brooklyn,Bronx,Manhattan] => [Queens](Conf: 97%, Supp: 15%)
+[Nonprofit] => [Youth Services](Conf: 96%, Supp: 19%)
+[Brooklyn,Queens] => [Manhattan](Conf: 96%, Supp: 15%)
+[Brooklyn,Bronx] => [Queens](Conf: 96%, Supp: 15%)
+[Brooklyn,Bronx,Queens] => [Manhattan](Conf: 96%, Supp: 15%)
+[Nonprofit] => [Health](Conf: 96%, Supp: 24%)
+[Nonprofit] => [Education](Conf: 95%, Supp: 33%)
+[Manhattan,Queens] => [Bronx](Conf: 95%, Supp: 15%)
+[Brooklyn,Manhattan] => [Queens](Conf: 94%, Supp: 15%)
+[Brooklyn,Queens] => [Bronx](Conf: 94%, Supp: 15%)
+[Health,Nonprofit] => [Manhattan](Conf: 94%, Supp: 16%)
+[Bronx,Manhattan] => [Queens](Conf: 94%, Supp: 15%)
+[Brooklyn,Bronx] => [Manhattan](Conf: 94%, Supp: 15%)
+[Manhattan,Queens] => [Brooklyn](Conf: 93%, Supp: 15%)
+[Education,Nonprofit] => [Manhattan](Conf: 92%, Supp: 19%)
+[Nonprofit] => [Manhattan](Conf: 92%, Supp: 56%)
+[Brooklyn,Manhattan] => [Bronx](Conf: 91%, Supp: 15%)
+[Nonprofit] => [Queens](Conf: 86%, Supp: 29%)
+[Nonprofit] => [Brooklyn](Conf: 85%, Supp: 26%)
+[Nonprofit] => [Bronx](Conf: 80%, Supp: 18%)
+[Manhattan] => [Bronx](Conf: 72%, Supp: 16%)
+[Queens] => [Bronx](Conf: 70%, Supp: 15%)
+
