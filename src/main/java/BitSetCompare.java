@@ -1,7 +1,6 @@
-import javafx.util.Pair;
-
 import java.util.BitSet;
 import java.util.Comparator;
+import java.util.List;
 
 public class BitSetCompare implements Comparator<BitSet> {
     @Override
@@ -20,11 +19,11 @@ public class BitSetCompare implements Comparator<BitSet> {
     }
 }
 
-class BitSetConfidenceCompare implements Comparator<Pair<Pair<BitSet, String>, Double>> {
+class BitSetConfidenceCompare implements Comparator<List<Object>> {
     @Override
-    public int compare(Pair<Pair<BitSet, String>, Double> pair1, Pair<Pair<BitSet, String>, Double> pair2) {
-        if (pair2.getValue() - pair1.getValue() > 0) return 1;
-        else if (pair2.getValue() - pair1.getValue() < 0) return -1;
+    public int compare(List<Object> list1, List<Object> list2) {
+        if ((double) list2.get(2) - (double) list1.get(2) > 0) return 1;
+        else if ((double) list2.get(2) - (double) list1.get(2) < 0) return -1;
         else return 0;
     }
 }

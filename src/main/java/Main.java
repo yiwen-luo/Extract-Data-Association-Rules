@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -142,7 +140,8 @@ public class Main {
         output.append((int) (minConf * 100));
         output.append("%)\n");
 
-        Map<Pair<Pair<BitSet, String>, Double>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
+        Map<List<Object>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
+//        Map<Pair<Pair<BitSet, String>, Double>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
         for (Map<BitSet, Candidate> currentCountMap : highFreqItems) {
             for (Map.Entry<BitSet, Candidate> currentEntry : currentCountMap.entrySet()) {
                 if (currentEntry.getValue().supportList.size() > 1) {
@@ -153,20 +152,23 @@ public class Main {
                         prevBits.clear(i);
                         double currentConfidence = (double) currentEntry.getValue().records.size() / currentSupport;
                         if (currentConfidence >= minConf) {
-                            printMap.put(new Pair<>(new Pair<>(prevBits, attributeMap.get(i)), currentConfidence),
-                                    (double) currentEntry.getValue().records.size() / dataCount);
+                            List<Object> printList = new ArrayList<>();
+                            printList.add(prevBits);
+                            printList.add(attributeMap.get(i));
+                            printList.add(currentConfidence);
+                            printMap.put(printList, (double) currentEntry.getValue().records.size() / dataCount);
                         }
                     }
                 }
             }
         }
 
-        for (Map.Entry<Pair<Pair<BitSet, String>, Double>, Double> currentEntry : printMap.entrySet()) {
-            printCandidate(currentEntry.getKey().getKey().getKey(), output);
+        for (Map.Entry<List<Object>, Double> currentEntry : printMap.entrySet()) {
+            printCandidate((BitSet) currentEntry.getKey().get(0), output);
             output.append(" => [");
-            output.append(currentEntry.getKey().getKey().getValue());
+            output.append((String) currentEntry.getKey().get(1));
             output.append("](Conf: ");
-            output.append((int) (currentEntry.getKey().getValue() * 100));
+            output.append((int) ((double) currentEntry.getKey().get(2) * 100));
             output.append("%, Supp: ");
             output.append((int) (currentEntry.getValue() * 100));
             output.append("%)\n");
