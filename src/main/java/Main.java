@@ -141,7 +141,6 @@ public class Main {
         output.append("%)\n");
 
         Map<List<Object>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
-//        Map<Pair<Pair<BitSet, String>, Double>, Double> printMap = new TreeMap<>(new BitSetConfidenceCompare());
         for (Map<BitSet, Candidate> currentCountMap : highFreqItems) {
             for (Map.Entry<BitSet, Candidate> currentEntry : currentCountMap.entrySet()) {
                 if (currentEntry.getValue().supportList.size() > 1) {
