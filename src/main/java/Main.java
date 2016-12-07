@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,7 +111,7 @@ public class Main {
             }
             output.append(",");
         }
-        output.append("], ");
+        output.append("]");
     }
 
     private static void printCandidate(int b, PrintStream ps) {
@@ -124,16 +123,22 @@ public class Main {
         output.append((int) (supp * 100));
         output.append("%)\n");
 
-        Map<Candidate, BitSet> printMap = new TreeMap<>();
+        Map<Candidate, BitSet> printMap = new TreeMap<>(new CandidateCompare());
         for (Map<BitSet, Candidate> currentCountMap : highFreqItems) {
             for (Map.Entry<BitSet, Candidate> currentEntry : currentCountMap.entrySet()) {
-
-
-                printCandidate(currentEntry.getKey(), output);
-                System.out.printf(", %d%%\n", (int) ((double) currentEntry.getValue().records.size() / dataCount * 100));
+                printMap.put(currentEntry.getValue(), currentEntry.getKey());
             }
         }
-        System.out.println();
+
+        for (Map.Entry<Candidate, BitSet> currentEntry : printMap.entrySet()) {
+            printCandidate(currentEntry.getValue(), output);
+            output.append(", ");
+            output.append((int) (currentEntry.getKey().records.size() * 100.0 / dataCount));
+            output.append("%\n");
+        }
+        output.append("\n");
+
+        System.out.print(output.toString());
     }
 
     public static void main(String[] args) throws Exception {
@@ -165,35 +170,33 @@ public class Main {
         pirntFrequentItemsets(highFreqItems, output);
 
 
-        System.out.printf("==High-confidence association rules (min_conf=%d%%)\n", (int) (conf * 100));
-        int level = 0;
-        for (Map<BitSet, Candidate> e : highFreqItems) {
-            for (Map.Entry<BitSet, Candidate> f : e.entrySet()) {
-                assert (f.getValue().supportList.size() == f.getKey().cardinality());
-                assert (f.getValue().supportList.size() == level + 1);
-                if (f.getValue().supportList.size() > 1) {
-                    int i = -1;
-                    Iterator<Integer> j;
-                    for (j = f.getValue().supportList.iterator(); j.hasNext(); ) {
-                        i = f.getKey().nextSetBit(i + 1);
-                        int prevsupp = j.next();
-                        BitSet prevbits = (BitSet) f.getKey().clone();
-                        prevbits.clear(i);
-                        assert (highFreqItems.get(level - 1).get(prevbits).records.size() == prevsupp);
-                        if ((double) f.getValue().records.size() / prevsupp >= conf) {
-                            printCandidate(prevbits, output);
-                            System.out.print(" => ");
-                            printCandidate(i, System.out);
-                            System.out.printf("(Conf: %d%%, Supp: %d%%)\n",
-                                    (int) ((double) f.getValue().records.size() / prevsupp * 100),
-                                    (int) ((double) f.getValue().records.size() / dataCount * 100));
-                        }
-                    }
-                }
-            }
-            ++level;
-        }
+//        System.out.printf("==High-confidence association rules (min_conf=%d%%)\n", (int) (conf * 100));
+//        int level = 0;
+//        for (Map<BitSet, Candidate> e : highFreqItems) {
+//            for (Map.Entry<BitSet, Candidate> f : e.entrySet()) {
+//                assert (f.getValue().supportList.size() == f.getKey().cardinality());
+//                assert (f.getValue().supportList.size() == level + 1);
+//                if (f.getValue().supportList.size() > 1) {
+//                    int i = -1;
+//                    Iterator<Integer> j;
+//                    for (j = f.getValue().supportList.iterator(); j.hasNext(); ) {
+//                        i = f.getKey().nextSetBit(i + 1);
+//                        int prevsupp = j.next();
+//                        BitSet prevbits = (BitSet) f.getKey().clone();
+//                        prevbits.clear(i);
+//                        assert (highFreqItems.get(level - 1).get(prevbits).records.size() == prevsupp);
+//                        if ((double) f.getValue().records.size() / prevsupp >= conf) {
+//                            printCandidate(prevbits, output);
+//                            System.out.print(" => ");
+//                            printCandidate(i, System.out);
+//                            System.out.printf("(Conf: %d%%, Supp: %d%%)\n",
+//                                    (int) ((double) f.getValue().records.size() / prevsupp * 100),
+//                                    (int) ((double) f.getValue().records.size() / dataCount * 100));
+//                        }
+//                    }
+//                }
+//            }
+//            ++level;
+//        }
     }
-
-
 }

@@ -18,6 +18,6 @@ public class Candidate {
 class CandidateCompare implements Comparator<Candidate> {
     @Override
     public int compare(Candidate c1, Candidate c2) {
-
+        return c2.records.size() - c1.records.size();
     }
 }
