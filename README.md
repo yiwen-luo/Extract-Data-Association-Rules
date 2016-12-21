@@ -1,5 +1,3 @@
-Project 3
-
 # Extract-Data-Association-Rules
 Extract Data Association Rules - COMS 6111 Project3
 
